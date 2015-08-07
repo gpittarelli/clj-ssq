@@ -33,12 +33,13 @@
         (b/ordered-map))))))
 
 (def ^:private segment-codec
-  (b/compile-codec (b/ordered-map :id :uint-le
-                                  :total :ubyte
-                                  :num :ubyte
-                                  :size :ushort-le)
-                   #(dissoc % :type :compressed?)
-                   #(assoc % :type :segment :compressed (bit-and (:id %) 0x80000000))))
+  (b/compile-codec
+   (b/ordered-map :id :uint-le
+                  :total :ubyte
+                  :num :ubyte
+                  :size :ushort-le)
+   #(dissoc % :type :compressed?)
+   #(assoc % :type :segment :compressed (bit-and (:id %) 0x80000000))))
 
 (def framing-codec
   (select-codec (b/ordered-map :header :int-le)
