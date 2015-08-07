@@ -58,7 +58,7 @@
                       (.skip full-message 4)
 
                       (deliver result-promise
-                        (b/decode codecs/ssq-codec full-message)))
+                               (b/decode codecs/ssq-codec full-message)))
                     (if (:compressed? result)
                       (deliver result-promise {:err :compression-unsupported})
                       (recur all-parts))))
@@ -68,7 +68,7 @@
                       challenge-encoded
                       (b/encode codecs/challenge-codec bao result)
                       msg (byte-array (concat [0xFF 0xFF 0xFF 0xFF]
-                                        message (.toByteArray bao)))]
+                                              message (.toByteArray bao)))]
                   (.send socket (DatagramPacket. msg (count msg) address))
                   (recur {}))
 
@@ -77,9 +77,9 @@
 
     ;; TODO: nice way of moving this bit to the codec namespace
     (let [msg (byte-array (concat [0xFF 0xFF 0xFF 0xFF]
-                            message
-                            (when needs-challenge?
-                              [0xFF 0xFF 0xFF 0xFF])))]
+                                  message
+                                  (when needs-challenge?
+                                    [0xFF 0xFF 0xFF 0xFF])))]
       (.send socket (DatagramPacket. msg (count msg) address)))
 
     result-promise))
@@ -89,21 +89,21 @@
   as `request`, except does not accept a `message` parameter."
   ([& args]
    (apply request
-     (.getBytes "TSource Engine Query\u0000")
-     args)))
+          (.getBytes "TSource Engine Query\u0000")
+          args)))
 
 (defn players
   "Requests player list from a Source server. Takes the same arguments
   as `request`, except does not accept a `message` parameter."
   ([& args]
    (apply request
-     (.getBytes "U")
-     (concat args [:needs-challenge? true]))))
+          (.getBytes "U")
+          (concat args [:needs-challenge? true]))))
 
 (defn rules
   "Requests rules list from a Source server. Takes the same arguments
   as `request`, except does not accept a `message` parameter."
   ([& args]
    (apply request
-     (.getBytes "V")
-     (concat args [:needs-challenge? true]))))
+          (.getBytes "V")
+          (concat args [:needs-challenge? true]))))
