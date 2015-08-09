@@ -1,6 +1,6 @@
 (defproject clj-ssq "0.1.0-SNAPSHOT"
   :description "Source Server Query protocol implementation"
-  :url "http://example.com/FIXME"
+  :url "https://github.com/gpittarelli/clj-ssq"
   :license {:name "MIT License"
             :url "http://www.opensource.org/licenses/mit-license.php"}
   :dependencies [[org.clojure/core.async "0.1.346.0-17112a-alpha"]
