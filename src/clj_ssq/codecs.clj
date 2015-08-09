@@ -109,4 +109,6 @@
 (let [name-value-codec (b/ordered-map :name ssq-string :value ssq-string)]
   (def rules-codec
     (b/compile-codec
-     (b/repeated name-value-codec :prefix :ushort-le))))
+     (b/repeated name-value-codec :prefix :ushort-le)
+     #(apply map (fn [name val] {:name name :value val}) (juxt keys vals) %)
+     #(into {} (map (juxt :name :value) %)))))

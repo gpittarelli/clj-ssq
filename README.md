@@ -61,10 +61,12 @@ user> (pprint @s)
 user> (def s (clj-ssq.core/rules "tf2.example.com" 27015))
 #'user/s
 user> (pprint @s)
-[{:name "tf_birthday", :value "0"}
- {:name "tf_bot_count", :value "0"}
- {:name "backpack_tf_version", :value "2.11.1"}
- ...]
+{"mp_scrambleteams_auto" "1",
+ "hlxce_plugin_version" "1.6.19",
+ "nextlevel" "",
+ "sv_tags" "HLstatsX:CE,_registered,alltalk,backpack.tf,cp,replays",
+ "mp_footsteps" "1"
+ ...}
 user> (def s (clj-ssq.core/rules "127.0.0.1" 1234))
 #'user/s
 ;; Wait 3 seconds
