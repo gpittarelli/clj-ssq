@@ -86,17 +86,11 @@
                     (let [{:keys [num total]} result
                           all-parts (assoc parts num stream)]
                       (if (= (count (keys all-parts)) total)
-                        (let [^SequenceInputStream full-message
-                              (->> (range total)
-                                   (map all-parts)
-                                   concat-input-streams)]
-                          ;; TODO: nice way of moving this skip to the
-                          ;; codec namespace
-                          (.skip full-message 4)
-
-                          (deliver
-                           result-promise
-                           (b/decode codecs/ssq-codec full-message)))
+                        (->> (range total)
+                             (map all-parts)
+                             concat-input-streams
+                             (b/decode codecs/framing-codec)
+                             (deliver result-promise))
                         (if (:compressed? result)
                           (deliver result-promise
                                    {:err :compression-unsupported})
