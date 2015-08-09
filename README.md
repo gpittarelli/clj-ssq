@@ -52,7 +52,10 @@ user> (pprint @s)
  :version "2892667",
  :map "cp_dustbowl",
  :visibility 0,
- :edf #{:steamid? :port? :keywords? :gameid?}}
+ :edf #{:steamid? :port? :keywords? :gameid?}
+ ;; see the valve wiki; some values will only appear if their flag is
+ ;; present in the edf field.
+ }
 user> (def s (clj-ssq.core/players "tf2.example.com" 27015))
 #'user/s
 user> (pprint @s)
