@@ -1,5 +1,7 @@
 # clj-ssq
 
+[![Clojars Project](http://clojars.org/clj-ssq/latest-version.svg)](http://clojars.org/clj-ssq)
+
 A Clojure library implementing the Source Server Query (SSQ) protocol
 for interacting with Source engine powered game servers (TF2, L4D,
 etc.).
