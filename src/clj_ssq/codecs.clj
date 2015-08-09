@@ -10,7 +10,20 @@
       (let [decision-value (b/read-data decision-codec big-in little-in)
             codec (selector-fn decision-value)]
         (b/read-data codec big-in little-in)))
-    (write-data [_ big-out little-out script])))
+    (write-data [_ big-out little-out value])))
+;; (end previous attribution)
+
+(defn- optional-codec [codec default-value]
+  "Returns a codec which will apply the given codec only if data is
+  still available in the input stream, else it will return the default
+  value."
+  (reify org.clojars.smee.binary.core.BinaryIO
+    (read-data [_ big-in little-in]
+      (if (zero? (.available big-in))
+        default-value
+        (b/read-data codec big-in little-in)))
+    (write-data [_ big-out little-out value]
+      (b/write-data codec big-out little-out value))))
 
 (def challenge-codec
   (b/compile-codec
@@ -72,7 +85,7 @@
         :visibility :ubyte
         :vac-enabled? :ubyte
         :version ssq-string
-        :edf (b/bits edf-bits)))
+        :edf (optional-codec (b/bits edf-bits) #{})))
 
       extended-codecs
       {:gameid? (b/ordered-map :gameid :ulong-le)
