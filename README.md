@@ -22,13 +22,16 @@ This library provides 3 query functions: `info`, `players`, and
 non-deprecated SSQ queries listed on protocol's wiki page. Each of
 these functions accepts a hostname/ip address parameter (as a string)
 and a port number. They all return a promise that will receive either
-the requested data, or an error object of the form `{:err :timeout}`
-or `{:err :compression-unsupported}` (the latter indicating that the
-response is compressed, a protocol feature that modern Source engine
-servers do not use and is not currently supported by this library).
+the requested data, or an error object of the form `{:err :timeout}`,
+`{:err :socket-timeout}`, `{:err :port-unreachable}`, 
+`{:err :io-exception}`, or `{:err :compression-unsupported}` (the
+latter indicating that the response is compressed, a protocol feature
+that modern Source engine servers do not use and is not currently
+supported by this library). When relevant, error objects may also have
+an `:exception` key with the exception that caused the query to fail.
 
-They also accept two optional timeout keyword parameters, `:timeout`
-and `:socket-timeout` (given in milliseconds; both default to
+The query functions also accept two optional timeout keyword parameters,
+`:timeout` and `:socket-timeout` (given in milliseconds; both default to
 3000). `:timeout` is the time required for a complete answer to be
 received and delivered to the promise, whereas `:socket-timeout` is
 the time allowed for each UDP datagram to arrive (some responses are
