@@ -8,6 +8,11 @@ I recommend glancing over the following Valve dev wiki page about SSQ:
 
 https://developer.valvesoftware.com/wiki/Server_queries
 
+Note that this library uses futures, so applications using this
+library may suffer a 1 minute delay before exiting unless they call
+`(shutdown-agents)` or `(System/exit <exit-status>)`. See
+http://dev.clojure.org/jira/browse/CLJ-124 for more information.
+
 ## Usage
 
 This library provides 3 query functions: `info`, `players`, and
