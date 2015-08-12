@@ -104,7 +104,10 @@
       (b/compile-codec
        ssq-string
        (fn [keywords] (str/join "," keywords))
-       (fn [csv] (str/split csv #",")))
+       (fn [csv] (-> csv
+                     (str/split #",")
+                     (#(map keyword %))
+                     set)))
 
       extended-codecs
       {:gameid? (b/ordered-map :gameid :ulong-le)
