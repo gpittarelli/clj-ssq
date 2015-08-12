@@ -1,5 +1,7 @@
 (ns clj-ssq.codecs
-  (:require [org.clojars.smee.binary.core :as b]))
+  (:require [org.clojars.smee.binary.core :as b]
+            [clojure.string :as str])
+  (:import [java.io ByteArrayInputStream]))
 
 (def ^:private ssq-string (b/c-string "UTF8"))
 
@@ -13,17 +15,28 @@
     (write-data [_ big-out little-out value])))
 ;; (end previous attribution)
 
-(defn- optional-codec [codec default-value]
+(defn- optional-byte
   "Returns a codec which will apply the given codec only if data is
   still available in the input stream, else it will return the default
-  value."
+  value.
+
+  Due to limitations with the binary library, we must do a hack with a
+  temporary input stream. (since mark/reset/available are not properly
+  delegated, we can only test if new data is present with .read (and
+  assume the underlying data stream is properly marked as ended, such
+  as with ByteArrayInputStreams)) To simplify this hack, the nested
+  codec must only read a single byte."
+  [codec default-value]
   (reify org.clojars.smee.binary.core.BinaryIO
     (read-data [_ big-in little-in]
-      (if (zero? (.available big-in))
-        default-value
-        (b/read-data codec big-in little-in)))
+      (let [maybe-byte (.read big-in)]
+        (if (= -1 maybe-byte)
+          default-value
+          (let [byte-stream (ByteArrayInputStream. (byte-array [maybe-byte]))]
+            (b/decode codec byte-stream)))))
     (write-data [_ big-out little-out value]
-      (b/write-data codec big-out little-out value))))
+      (b/write-data codec big-out little-out
+                    (if (nil? value) default-value value)))))
 
 (def challenge-codec
   (b/compile-codec
@@ -85,11 +98,17 @@
         :visibility :ubyte
         :vac-enabled? :ubyte
         :version ssq-string
-        :edf (optional-codec (b/bits edf-bits) #{})))
+        :edf (optional-byte (b/bits edf-bits) #{})))
+
+      ssq-keywords
+      (b/compile-codec
+       ssq-string
+       (fn [keywords] (str/join "," keywords))
+       (fn [csv] (str/split csv #",")))
 
       extended-codecs
       {:gameid? (b/ordered-map :gameid :ulong-le)
-       :keywords? (b/ordered-map :keywords ssq-string)
+       :keywords? (b/ordered-map :keywords ssq-keywords)
        :sourcetv? (b/ordered-map :sourcetv-port :ushort-le
                                  :sourcetv-url ssq-string)
        :port? (b/ordered-map :port :ushort-le)
