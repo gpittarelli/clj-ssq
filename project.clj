@@ -6,4 +6,5 @@
   :dependencies [[org.clojure/core.async "0.1.346.0-17112a-alpha"]
                  [smee/binary "0.5.1"]]
   :profiles {:dev {:dependencies [[org.clojure/clojure "1.7.0"]]
-                   :global-vars {*warn-on-reflection* true}}})
+                   :global-vars {*warn-on-reflection* true}}}
+  :signing {:gpg-key "8D1FE35F"})
