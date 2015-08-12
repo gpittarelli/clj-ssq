@@ -1,4 +1,4 @@
-(defproject clj-ssq "0.1.0"
+(defproject clj-ssq "0.2.0"
   :description "Source Server Query protocol implementation"
   :url "https://github.com/gpittarelli/clj-ssq"
   :license {:name "MIT License"
