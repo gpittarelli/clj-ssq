@@ -20,7 +20,7 @@
 (defn- datagram->stream [^DatagramPacket p]
   (ByteArrayInputStream. (.getData p) (.getOffset p) (.getLength p)))
 
-(defn- make-request-fn [request-message
+(defn- make-request-fn [request-code
                         & {:keys [:needs-challenge?]
                            :or {:needs-challenge? false}}]
   "Creates a function that sends out an SSQ request to a given
@@ -39,14 +39,18 @@
             (.setSoTimeout socket-timeout)
             (.connect address))
 
+          send
+          (fn [data challenge]
+            (let [bao (ByteArrayOutputStream. 100)]
+              (b/encode codecs/ssq-request-codec bao [data challenge])
+              (let [packet (DatagramPacket. (.toByteArray bao)
+                                            (.size bao)
+                                            address)]
+                (.send socket packet))))
+
           result-promise (promise)]
 
-      ;; TODO: nice way of moving this bit to the codec namespace
-      (let [msg (byte-array (concat [0xFF 0xFF 0xFF 0xFF]
-                                    request-message
-                                    (when needs-challenge?
-                                      [0xFF 0xFF 0xFF 0xFF])))]
-        (.send socket (DatagramPacket. msg (count msg) address)))
+      (send request-code (when needs-challenge? :request))
 
       (future
         (Thread/sleep timeout)
@@ -98,18 +102,9 @@
 
                     ;; If given a challenge, re-issue with the request
                     ;; with the challenge token
-                    ;; TODO: move the binary stuff here into the codecs code
                     (contains? result :challenge)
-                    (let [bao (ByteArrayOutputStream.)
-
-                          challenge-encoded
-                          (b/encode codecs/challenge-codec bao result)
-
-                          msg (byte-array
-                               (concat [0xFF 0xFF 0xFF 0xFF]
-                                       request-message (.toByteArray bao)))]
-                      (.send socket (DatagramPacket. msg (count msg) address))
-                      (recur {}))
+                    (do (send request-code (:challenge result))
+                        (recur {}))
 
                     ;; otherwise we got the actual data back
                     :else

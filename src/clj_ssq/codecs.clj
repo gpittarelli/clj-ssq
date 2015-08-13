@@ -39,6 +39,23 @@
       (b/write-data codec big-out little-out
                     (if (nil? value) default-value value)))))
 
+(defn- optional-challenge []
+  (reify org.clojars.smee.binary.core.BinaryIO
+    (read-data [_ big-in little-in]
+      (let [maybe-challenge-bytes (take 4 (repeatedly #(.read big-in)))]
+        (when (every? #(not= % 255) maybe-challenge-bytes)
+          (->> maybe-challenge-bytes
+               byte-array
+               ByteArrayInputStream.
+               (b/decode :uint-le)))))
+    (write-data [_ big-out little-out challenge]
+      (cond
+        (= challenge :request)
+        (b/write-data :uint-le big-out little-out 0xffffffff)
+
+        (not (nil? challenge))
+        (b/write-data :uint-le big-out little-out challenge)))))
+
 (defn- map-codec
   "Returns a codec that reads the nested codec and looks up the
   returned value in the given map to determine the resulting
@@ -75,6 +92,14 @@
         0x45 rules-codec
         0x41 challenge-codec
         (b/ordered-map))))))
+
+(def ssq-request-codec
+  (b/compile-codec
+   [(b/constant (b/blob) (byte-array [0xFF 0xFF 0xFF 0xFF]))
+    (b/blob)
+    (optional-challenge)]
+   (fn [[opcode challenge]] [nil opcode challenge])
+   identity))
 
 (def ^:private segment-codec
   (b/compile-codec
