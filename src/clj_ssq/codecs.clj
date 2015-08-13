@@ -101,6 +101,39 @@
    (fn [[opcode challenge]] [nil opcode challenge])
    identity))
 
+(def msq-regions
+  {0x00 :us-east
+   0x01 :us-west
+   0x02 :south-america
+   0x03 :europe
+   0x04 :asia
+   0x05 :australia
+   0x06 :middle-east
+   0x07 :africa
+   0xFF :other})
+
+(def msq-query-codec
+  (b/compile-codec
+   [(b/constant :ubyte (int \1))
+    (b/ordered-map :region-code (map-codec :ubyte msq-regions)
+                   :prev-server ssq-string
+                   :filter ssq-string)]))
+
+(def ip-codec
+  (b/compile-codec
+   [:ubyte :ubyte :ubyte :ubyte]
+   (fn [ip-str] (map #(Integer. %) (str/split ip-str #"\.")))
+   (fn [octets] (->> octets
+                     (map str)
+                     (str/join ".")))))
+
+(def msq-response-codec
+  (b/compile-codec
+   [(byte-array [0xFF 0xFF 0xFF 0xFF 0x66 0x0A])
+    (b/repeated (b/ordered-map :ip ip-codec :port :ushort))]
+   identity
+   second))
+
 (def ^:private segment-codec
   (b/compile-codec
    (b/ordered-map :id :uint-le

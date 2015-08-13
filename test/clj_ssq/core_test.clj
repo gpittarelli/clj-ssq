@@ -1,7 +1,9 @@
 (ns clj-ssq.core-test
   (:require [clojure.test :refer :all]
             [clj-ssq.core :refer :all]
-            [clj-ssq.core-test-data :refer :all])
+            [clj-ssq.codecs :as codecs]
+            [clj-ssq.core-test-data :refer :all]
+            [org.clojars.smee.binary.core :as b])
   (:import [java.net DatagramSocket DatagramPacket]
            [java.io ByteArrayInputStream ByteArrayOutputStream]))
 
@@ -58,3 +60,8 @@
   (is (= @(info *test-server* *test-port*) info-response-value))
   (is (= @(rules *test-server* *test-port*) rules-response-value))
   (is (= @(players *test-server* *test-port*) player-response-value)))
+
+(deftest msq-decode-test
+  (let [bai (ByteArrayInputStream. msq-response)]
+    (is (= (b/decode codecs/msq-response-codec bai)
+           msq-value))))
