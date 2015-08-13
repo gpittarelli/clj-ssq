@@ -1,6 +1,7 @@
 (ns clj-ssq.codecs
   (:require [org.clojars.smee.binary.core :as b]
-            [clojure.string :as str])
+            [clojure.string :as str]
+            [clojure.set :refer [map-invert]])
   (:import [java.io ByteArrayInputStream]))
 
 (def ^:private ssq-string (b/c-string "UTF8"))
@@ -37,6 +38,23 @@
     (write-data [_ big-out little-out value]
       (b/write-data codec big-out little-out
                     (if (nil? value) default-value value)))))
+
+(defn- map-codec
+  "Returns a codec that reads the nested codec and looks up the
+  returned value in the given map to determine the resulting
+  value (and does the reverse for encoding). The map must be 1-1 (all
+  keys are unique and all values are unique)."
+  [codec dict]
+  (assert (every? #(= % 1) (vals (frequencies (vals dict))))
+          "map-codec must be given a map with unique values.")
+  (let [dict-inverse (map-invert dict)]
+    (b/compile-codec
+     codec
+     #(dict-inverse %1)
+     #(dict %1))))
+
+(def ubyte->char
+  (b/compile-codec :ubyte int char))
 
 (def challenge-codec
   (b/compile-codec
@@ -93,10 +111,17 @@
         :players :ubyte
         :max-players :ubyte
         :bots :ubyte
-        :server-type :ubyte
-        :environment :ubyte
-        :visibility :ubyte
-        :vac-enabled? :ubyte
+        :server-type (map-codec ubyte->char
+                                {\d :dedicated
+                                 \l :non-dedicated
+                                 \p :stv-relay})
+        :environment (map-codec ubyte->char
+                                {\l :linux
+                                 \w :windows
+                                 \m :mac
+                                 \o :old-mac})
+        :password? (map-codec :ubyte {0 false 1 true})
+        :vac-enabled? (map-codec :ubyte {0 false 1 true})
         :version ssq-string
         :edf (optional-byte (b/bits edf-bits) #{})))
 

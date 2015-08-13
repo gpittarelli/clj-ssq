@@ -25,23 +25,23 @@
     (.getBytes "tag1,tag2,tag3"))))
 
 (def info-response-value
-  {:vac-enabled? 0
-   :max-players 16
-   :edf #{:port? :keywords?}
-   :keywords #{:tag1 :tag2 :tag3}
-   :port 0x1234
-   :protocol 2
-   :game "Counter-Strike: Source"
-   :folder "cstrike"
-   :name "game2xs.com Counter-Strike Source #1"
-   :bots 4
-   :id 240
-   :players 5
-   :environment 108
-   :server-type 100
-   :version "1.0.0.22"
-   :map "de_dust"
-   :visibility 0})
+  {:vac-enabled? false,
+   :max-players 16,
+   :edf #{:port? :keywords?},
+   :protocol 2,
+   :game "Counter-Strike: Source",
+   :folder "cstrike",
+   :name "game2xs.com Counter-Strike Source #1",
+   :bots 4,
+   :port 4660,
+   :keywords #{:tag1 :tag2 :tag3},
+   :password? false,
+   :id 240,
+   :players 5,
+   :environment :linux,
+   :server-type :dedicated,
+   :version "1.0.0.22",
+   :map "de_dust"})
 
 (def player-challenge-query
   (byte-array

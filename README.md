@@ -23,7 +23,7 @@ non-deprecated SSQ queries listed on protocol's wiki page. Each of
 these functions accepts a hostname/ip address parameter (as a string)
 and a port number. They all return a promise that will receive either
 the requested data, or an error object of the form `{:err :timeout}`,
-`{:err :socket-timeout}`, `{:err :port-unreachable}`, 
+`{:err :socket-timeout}`, `{:err :port-unreachable}`,
 `{:err :io-exception}`, or `{:err :compression-unsupported}` (the
 latter indicating that the response is compressed, a protocol feature
 that modern Source engine servers do not use and is not currently
@@ -44,7 +44,8 @@ complete answer to be assembled).
 user> (def s (clj-ssq.core/info "tf2.example.com" 27015))
 #'user/s
 user> (pprint @s)
-{:vac-enabled? 1,
+{:vac-enabled? true,
+ :password? false,
  :gameid 440N,
  :max-players 24,
  :players 15,
@@ -54,14 +55,13 @@ user> (pprint @s)
  :name "Our tf2 server title",
  :bots 0,
  :port 27015,
- :keywords "HLstatsX:CE,_registered,alltalk,backpack.tf,cp,replays",
+ :keywords {:HLstatsX:CE :_registered :replays :alltalk}
  :id 440,
- :environment 108,
- :server-type 100,
+ :environment :linux,
+ :server-type :dedicated,
  :steamid 81234567898765432N,
  :version "2892667",
  :map "cp_dustbowl",
- :visibility 0,
  :edf #{:steamid? :port? :keywords? :gameid?}
  ;; see the valve wiki; some values will only appear if their flag is
  ;; present in the edf field.
