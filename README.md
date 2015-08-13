@@ -2,13 +2,15 @@
 
 [![Clojars Project](http://clojars.org/clj-ssq/latest-version.svg)](http://clojars.org/clj-ssq)
 
-A Clojure library implementing the Source Server Query (SSQ) protocol
-for interacting with Source engine powered game servers (TF2, L4D,
-etc.).
+A Clojure library implementing the Source Server Query (SSQ) and
+Master Server Query protocols for interacting with Source engine
+powered game servers (TF2, L4D, etc.).
 
-I recommend glancing over the following Valve dev wiki page about SSQ:
+I recommend glancing over the following Valve dev wiki pages about
+SSQ:
 
 https://developer.valvesoftware.com/wiki/Server_queries
+https://developer.valvesoftware.com/wiki/Master_Server_Query_Protocol
 
 Note that this library uses futures, so applications using this
 library may suffer a 1 minute delay before exiting unless they call
@@ -17,13 +19,29 @@ http://dev.clojure.org/jira/browse/CLJ-124 for more information.
 
 ## Usage
 
-This library provides 3 query functions: `info`, `players`, and
+This library provides 3 SSQ query functions: `info`, `players`, and
 `rules` (in the `clj-ssq.core` namespace), lining up with the 3
 non-deprecated SSQ queries listed on protocol's wiki page. Each of
 these functions accepts a hostname/ip address parameter (as a string)
-and a port number. They all return a promise that will receive either
-the requested data, or an error object of the form `{:err :timeout}`,
-`{:err :socket-timeout}`, `{:err :port-unreachable}`,
+and a port number.
+
+Additionally, the `master` function is provided for querying the
+Source master servers (you most likely want
+"hl2master.steampowered.com" with port 27011). The `master` function
+takes `host` and `port` like the previous functions, along with a
+`region` parameter (one of `:us-east :us-west :africa :asia
+:middle-east :europe :south-america :australia :other`) and a `filter`
+parameter which is a string following the filter format on this page:
+
+https://developer.valvesoftware.com/wiki/Master_Server_Query_Protocol
+
+For example, "\appid\440" would fetch all listed TF2 servers. Be
+careful to escape the backslashes, in a program the filter should be
+written as "\\appid\\440".
+
+All above-mentioned query functions return a promise that will receive
+either the requested data, or an error object of the form `{:err
+:timeout}`, `{:err :socket-timeout}`, `{:err :port-unreachable}`,
 `{:err :io-exception}`, or `{:err :compression-unsupported}` (the
 latter indicating that the response is compressed, a protocol feature
 that modern Source engine servers do not use and is not currently
@@ -80,6 +98,15 @@ user> (pprint @s)
  "sv_tags" "HLstatsX:CE,_registered,alltalk,backpack.tf,cp,replays",
  "mp_footsteps" "1"
  ...}
+user> (def m (clj-ssq.core/master "hl2master.steampowered.com" 27011
+                                  :us-east "\\appid\\440"))
+#'user/m
+user> (pprint @m)
+#{"208.78.165.72:27046" "208.78.164.166:27042" "208.78.164.169:27067"
+  "74.91.123.49:27015" "68.232.174.111:27015" "216.52.148.207:27015"
+  "192.223.31.101:27015" "74.91.119.82:27015" "72.5.195.233:27015"
+  ...
+  }
 user> (def s (clj-ssq.core/rules "127.0.0.1" 1234))
 #'user/s
 ;; Wait 3 seconds
