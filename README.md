@@ -73,7 +73,7 @@ user> (pprint @s)
  :name "Our tf2 server title",
  :bots 0,
  :port 27015,
- :keywords {:HLstatsX:CE :_registered :replays :alltalk}
+ :keywords {"HLstatsX:CE" "_registered" "replays" "alltalk"}
  :id 440,
  :environment :linux,
  :server-type :dedicated,

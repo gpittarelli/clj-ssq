@@ -34,7 +34,7 @@
    :name "game2xs.com Counter-Strike Source #1",
    :bots 4,
    :port 4660,
-   :keywords #{:tag1 :tag2 :tag3},
+   :keywords #{"tag1" "tag2" "tag3"},
    :password? false,
    :id 240,
    :players 5,
