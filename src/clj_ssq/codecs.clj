@@ -117,7 +117,9 @@
    [(b/constant :ubyte (int \1))
     (b/ordered-map :region-code (map-codec :ubyte msq-regions)
                    :prev-server ssq-string
-                   :filter ssq-string)]))
+                   :filter ssq-string)]
+   (fn [data] [nil data])
+   identity))
 
 (def ip-codec
   (b/compile-codec

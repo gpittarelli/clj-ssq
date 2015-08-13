@@ -129,3 +129,80 @@
   optional :timeout/:socket-timeout parameters and returns a promise
   to which the result will be delivered, or an error object."
   (make-request-fn (.getBytes "V") :needs-challenge? true))
+
+
+;;;; Master Server Queries
+
+;; TODO: pull out the duplicated code from this and
+;; make-request-fn (maybe into core.async channels + transducers?)
+(defn master [host port region filter
+              & {:keys [:timeout :socket-timeout]
+                 :or {:timeout 3000 :socket-timeout 3000}}]
+  (let [^InetSocketAddress address
+        (InetSocketAddress. host port)
+
+        ^DatagramSocket socket
+        (doto (DatagramSocket.)
+          (.setSoTimeout socket-timeout)
+          (.connect address))
+
+        send
+        (fn [prev-server]
+          (let [bao (ByteArrayOutputStream. 100)]
+            (b/encode codecs/msq-query-codec bao
+                      {:region-code region
+                       :prev-server prev-server
+                       :filter filter})
+            (let [packet (DatagramPacket. (.toByteArray bao)
+                                          (.size bao)
+                                          address)]
+              (.send socket packet))))
+
+        result-promise (promise)]
+
+    (send "0.0.0.0:0")
+
+    (future
+      (Thread/sleep timeout)
+      (.close socket)
+      (when-not (realized? result-promise)
+        (deliver result-promise {:err :timeout})))
+
+    (future
+      (loop [all-servers #{}]
+        (let [recv-max-len 2048
+              recv-buf (byte-array recv-max-len)
+              recv-packet (DatagramPacket. recv-buf recv-max-len)
+
+              handle-err (fn [code exception]
+                           (.close socket)
+                           (deliver result-promise
+                                    {:err code
+                                     :exception exception})
+                           false)]
+          (when (and (not (realized? result-promise))
+                     (socket-open? socket))
+            (when (try
+                    (.receive socket recv-packet)
+                    true
+
+                    (catch SocketTimeoutException err
+                      (handle-err :socket-timeout err))
+                    (catch PortUnreachableException err
+                      (handle-err :port-unreachable err))
+                    (catch IOException err
+                      (handle-err :io-exception err)))
+              (let [servers (->> recv-packet
+                                 datagram->stream
+                                 (b/decode codecs/msq-response-codec)
+                                 (map (fn [{:keys [ip port]}]
+                                        (str ip ":" port))))
+                    last-server (last servers)
+                    new-all-servers (into all-servers servers)]
+                (if (= last-server "0.0.0.0:0")
+                  (deliver result-promise (disj new-all-servers "0.0.0.0:0"))
+
+                  ;; Piece segmented responses back together
+                  (do (send last-server)
+                      (recur new-all-servers)))))))))
+    result-promise))
