@@ -55,8 +55,7 @@
       (future
         (Thread/sleep timeout)
         (.close socket)
-        (when-not (realized? result-promise)
-          (deliver result-promise {:err :timeout})))
+        (deliver result-promise {:err :timeout}))
 
       (future
         (loop [parts {}]
