@@ -30,7 +30,8 @@ Source master servers (you most likely want
 "hl2master.steampowered.com" with port 27011). The `master` function
 takes `host` and `port` like the previous functions, along with a
 `region` parameter (one of `:us-east :us-west :africa :asia
-:middle-east :europe :south-america :australia :other`) and a `filter`
+:middle-east :europe :south-america :australia :other`; the list is
+also available as `clj-ssq.core/master-regions`) and a `filter`
 parameter which is a string following the filter format on this page:
 
 https://developer.valvesoftware.com/wiki/Master_Server_Query_Protocol

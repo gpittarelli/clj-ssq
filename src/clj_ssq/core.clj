@@ -10,6 +10,8 @@
            [java.io BufferedReader BufferedWriter ByteArrayInputStream
             ByteArrayOutputStream SequenceInputStream IOException]))
 
+(def master-regions (vals codecs/msq-regions))
+
 (defn- concat-input-streams [streams]
   "Given a seq of InputStreams, returns a stream of the concatenation
   of all of the contents of each stream in streams, in order. "
